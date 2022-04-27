@@ -1,0 +1,34 @@
+on:
+  workflow_dispatch:
+    inputs:
+      project_prefix_variable:
+        description: 'Variable name to point to your project path'
+        default: 'MY_PROTEIN_PREFIX'
+        required: true
+      project_name:
+        description: 'System name'
+        required: true
+      your_name:
+        description: 'Use your name to commit'
+        required: true
+      your_email:
+        description: 'Use your email address to commit'
+        required: true
+
+jobs:
+  insert-values:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Insert values
+        run: |
+          grep -rl 'TEMPLATE_PROJECT_PREFIX' * | xargs sed -i 's!TEMPLATE_PROJECT_PREFIX!${{ github.event.inputs.project_prefix }}!g'
+          grep -rl 'TEMPLATE_SYSTEM_NAME' * | xargs sed -i -e 's!TEMPLATE_SYSTEM_NAME!${{ github.event.inputs.system_name }}!g'
+          rm .github/workflows/insert_values_to_template.yml
+      - name: Commit
+        run: |
+          git config --local user.name ${{ github.event.inputs.your_name }}
+          git config --local user.email ${{ github.event.inputs.your_email }}
+          git add .
+          git commit -m "Fill values in template"
+          git push origin main
